@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,4 +49,11 @@ public class UserService {
                 })
                 .flatMap(u -> userRepository.save(u));
     }
+
+    public Flux<String> getEmailByUsername(Flux<String> username) {
+        Flux<Users> users =username.flatMap(name->userRepository.findByName(Mono.just(name)));
+        Flux<Email> emailFlux = users.flatMap(user -> emailRepository.findAllById(user.getEmailIds()));
+        return emailFlux.delayElements(Duration.ofSeconds(2)).map(email -> email.getEmail());
+    }
+
 }
